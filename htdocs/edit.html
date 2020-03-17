@@ -1,0 +1,817 @@
+<html>
+  <head>
+    <title>RCloud</title>
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.png" />
+    <link rel="stylesheet" type="text/css" href="/css/rcloud.css" />
+    <link rel="stylesheet" type="text/css" href="/css/rcloud-edit.css" />
+
+    <!--
+
+    jquery,                             http://jquery.com
+    jquery-ui,                          http://jqueryui.com
+    jquery.cookies,                     http://code.google.com/p/cookies/wiki/License
+    tree.jquery.js,                     http://mbraak.github.com/jqTree/
+    underscore.js,                      http://underscorejs.org
+    d3 (and its colorbrewer colormaps), http://d3js.org
+    lux,                              http://cscheid.github.com/lux
+    twitter's bootstrap                 http://twitter.github.com/bootstrap/
+       bootstrap-transition
+       bootstrap-collapse
+
+    Indirectly, RCloud also depends on hljs, the syntax highlighter
+    Javascript library used by knitr. It also depends on MathJax
+    through knitr and rmarkdown.
+
+    -->
+
+    <script src="/lib/js/require-common.js"></script>
+    <script type="text/javascript" data-main="/lib/js/require-edit.js" src="/lib/js/require.js"></script>
+  </head>
+<body style="overflow:hidden">
+<div class="navbar navbar-inverse navbar-fixed-top">
+  <div>
+    <div id="rcloud-navbar-header" class="navbar-header"></div>
+    <div class="nav-collapse">
+      <ul id="rcloud-navbar-main" class="nav navbar-nav">
+        <li><div><span id="notebook-author"></span><span id="author-title-dash" style="display:none;">&nbsp;&ndash;&nbsp;</span><span id="rename-notebook" title="Change Title" style="display:none">[<span id="notebook-title"></span>]</div></span><small id="forked-from-desc"></small></li>
+        <li><a href="#" id="readonly-notebook" style="display:none;">(read-only)</a></li>
+        <li><a href="#"><span id="loading"><img id="loading-animation" src="/img/processing.gif" style="height: 20px;width:20px;margin:0"></img></span></a></li>
+      </ul>
+      <ul id="rcloud-navbar-menu" class="nav navbar-nav navbar-right"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- snippets for panels, see load_snippet -->
+<script type="text/html" id="notebooks-snippet">
+  <div class="panel-body notebook-tree">
+    <div id="tree-controls" class="panel-fixed-header">
+      <div id="tree-sort-by">
+        <label><i class="icon-sort"></i> <select id="tree_sort_order" data-settingkey="tree_sort_order"><option selected>name</option><option value="date_desc">date</option></select>
+      </div>
+      <div id="tree-filter-by">
+        <label><i class="icon-filter"></i> <select id="tree_filter_date" data-settingkey="tree_filter_date">
+          <option value="all">All</option>
+          <option value="last7">Last week</option>
+          <option value="last30">Last month</option>
+          <option value="last3months">Last 3 months</option>
+          <option value="last6months">Last 6 months</option>
+          <option value="lastyear">Last year</option>
+          <option value="last2years">Last 2 years</option>
+        </select>
+      </div>
+      <br style="clear:both" />
+    </div>
+    <div id="editor-book-tree" class="widget-vsize panel-scrollable-content"></div>
+  </div>
+</script>
+
+<script type="text/html" id="notebooks-panel-heading">
+  <span style="float: right; position: relative" id="notebooks-panel-controls">
+    <a class="header-button" id="new-notebook" title="New Notebook" href="#" style="">
+      <span><i class="icon-plus"></i>
+      </span>
+    </a>
+    <div class="dropdown recent-notebooks-dropdown" title="Recent Notebooks">
+      <a href="#" class="dropdown-toggle recent-btn" data-toggle="dropdown">Recent<b class="caret"></b></a>
+      <ul class="dropdown-menu recent-notebooks-list">
+      </ul>
+    </div>
+  </span>
+</script>
+
+<script type="text/template" id="find-in-notebook-snippet">
+  <div id="find-dialog">
+    <form id="find-form">
+      <i class="icon-search"></i>
+      <div class="find">
+        <span id="find-details">
+          <input type="text" id="find-input" class="form-control-ext mousetrap" placeholder="Find"></input>
+          <span id="match-status"><span id="match-index"/> of <span id="match-total"/></span>
+        </span>
+        <span class="btn-group" id="find-options-menu">
+            <button class="btn btn-default dropdown-toggle" data-toggle="dropdown"><i class="icon-ellipsis-horizontal"></i></button>
+            <ul class="dropdown-menu">
+              <li><span class="checkbox"><label><input type="checkbox" id="match-case-opt"/>Match case</label></span></li>
+              <li><span class="checkbox"><label><input type="checkbox" id="match-word-opt"/>Match word</label></span></li>
+            </ul>
+        </span>
+        <button id="find-last" class="btn" title="Find Previous"><i class="icon-arrow-left"></i></button>
+        <button id="find-next" class="btn btn-primary" title="Find Next"><i class="icon-arrow-right"></i></button>
+      </div>
+      <div class="replace" style="display:none">
+        <input type="text" id="replace-input" class="form-control-ext mousetrap" placeholder="Replace"></input>
+        <button id="replace" class="btn">Replace</button>
+        <button id="replace-all" class="btn">Replace All</button>
+      </div>
+      <a id="find-close" href="javascript:void(0)"><i class="icon-remove"></i></a>
+    </form>
+  </div>
+</script>
+
+<script type="text/html" id="search-snippet">
+  <div class="panel-body" style="padding-bottom: 0;padding-top:3px">
+    <div id="search-wrapper" class="widget-vsize"> <!-- only for sizing -->
+      <div id="search-header">
+        <form id="search-form" action="#">
+          <div class="input-group input-group-sm">
+            <input type="text" class="form-control-ext" id="input-text-search" placeholder="..Search Keyword" style="width: 100%;"></input>
+            <div class="input-group-btn">
+              <button class="btn btn-default-ext" type="submit" style="border-bottom-right-radius: 3;border-top-right-radius: 3">
+                <i class="icon-search"></i>
+              </button>
+              <!--Sort By :-->
+              <select id="sort-by" class="form-control-ext"  data-target="#sort-by" style="width: 65px;">
+                  <option value="score" selected>Score</option>
+                <option value="starcount" selected>Stars</option>
+                <option value="user">User</option>
+                <option value="description">Name</option>
+                <option value="updated_at">Date</option>
+              </select>
+              <!--Order By :-->
+              <select id="order-by" class="form-control-ext" style="width: 60px;">
+                <option value="asc" selected>Asc</option>
+                <option value="desc">Desc</option>
+              </select>
+            </div>
+          </div>
+        <!-- All Lakes :-->
+        <span class="checkbox" style="display:inline-block; margin-top: 4px">
+          <label><input type="checkbox" id="all-sources" checked="false">All Lakes</label>
+        </span>
+
+        <a href="http://lucene.apache.org/core/7_1_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#Terms" target="_blank" style="float:right; margin-top: 4px">
+          Lucene search syntax
+        </a>
+  <br>
+  <a href="https://github.com/att/rcloud.solr/blob/master/inst/solr/schema.xml" target="_blank" style="float:right; margin-top:-5px">search schema</a>
+
+        </form>
+        <div id="search-summary"></div>
+      </div>
+      <div id="search-results-row">
+        <div id="search-results-scroller">
+          <div id="search-results"></div>
+        </div>
+      </div>
+      <div id="search-results-pagination">
+        <div id="paging"></div>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/template" id="search_results_template">
+  <% _.each(notebooks, function(result, i) { %>
+    
+    <table class="search-result-item" width="100%">
+      <tbody>
+        <tr>
+          <td width="10%">
+            <% if (result.source == "main_source") { %>
+              <% var url = ui_utils.make_url('edit.html', {notebook: result.id}) %>
+            <a id="open_<%= i %>" href="<%= url %>"
+               class="search-result-heading"
+               title="source: local"
+               data-gistname=<%= result.id %>
+               data-gistsource="">
+            <% }else{ %> 
+              <% var url = ui_utils.make_url('edit.html', {notebook: result.id, source: result.source}) %>
+              <a id="open_<%= i %>" href="<%= url %>"
+                class="search-result-heading foreign-notebook"
+                title="source: <%=result.source%>"
+                data-gistname=<%= result.id %>
+                data-gistsource<%= result.source %> >
+            <% } %>
+
+              <%=result.user%> / <%=result.description%>
+            </a>
+            <i class="icon-star search-star"><sub>,<%=result.starcount%></sub></i> <br/>
+            <span class="search-result-modified-date">modified at <i><%=result.updated_at%></i></span>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" width="100%" style="font-size: 12">
+            <div>
+              <div>
+                <div id="docs<%=result.id%>">
+                  <table style="width: 100%">
+                    <tbody>
+                      <% _.each(result.doclist.docs, function(doc) { %>
+                        <tr>
+                          <th class="search-result-part-name"><%=doc.filename%></th>
+                        </tr>
+                        <tr>
+                          <td>
+                            <table style="width: 100%">
+                              <tbody>
+                                <tr>
+                                  <td class="search-result-code">
+                                    <code>
+                                      <%=doc.highlighting.content%>
+                                    </code>
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      <% }); %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  <% }); %>
+</script>
+
+<script type="text/html" id="help-snippet">
+  <div id="help-wrapper" class="panel-body widget-vsize">
+    <a href="#" id="show-shortcuts" title="Show Shortcuts">
+      <i class="icon-keyboard"></i>Shortcuts
+    </a>
+    <div id="help-header">
+      <form id="help-form" action="#">
+        <div class="input-group input-group-sm" style="width: 160px;padding-left: 8px;">
+          <input type="text" class="form-control-ext" id="input-text-help" placeholder="..Get help on" style="width: 128px;"></input>
+          <div class="input-group-btn">
+            <button class="btn btn-default-ext" type="submit" title="Search Help">
+              <i class="icon-question"></i>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div id="help-body"></div>
+  </div>
+</script>
+
+<div id="pull-changes-dialog" class="modal fade in">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background-color: rgba(255, 255, 255, 1.0)">
+        <div class="modal-header" style="padding-left:20px!important;padding-right:20px!important">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+            <h3 class="modal-title">Pull and Replace Notebook</h3>
+        </div>
+        <div class="modal-body">
+          <p>Pull changes from another notebook into your current notebook.</p>
+          <label for="pull-changes-by">Notebook source:</label>
+          <select id="pull-changes-by">
+            <option value="url">URL</option>
+            <option value="id" selected="selected">Notebook id</option>          
+            <option value="file">File</option>
+          </select>
+          <div data-by="url">
+            <label for="pull-notebook-url">Notebook URL:</label>
+            <input type="text" data-pull="change paste keyup" id="pull-notebook-url" size="50" spellcheck="false" />
+          </div>
+          <div data-by="id">
+            <label for="pull-notebook-id">Notebook ID:</label>
+            <input type="text" data-pull="change paste keyup" id="pull-notebook-id" size="32" spellcheck="false" />
+          </div>          
+          <div data-by="file">
+            <input type="file" data-pull="change" id="pull-notebook-file" size="32" />
+          </div>
+        <div class="modal-footer">
+          <span class="btn btn-cancel" data-dismiss="modal">Cancel</span>
+          <span class="btn btn-primary show-changes">Pull</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/template" id="merger-template">
+  <div id="merger-dialog" class="modal fade init" aria-hidden="false">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+          <h3 class="modal-title"><span id="merge-notebook-title">Merge Changes</span> <span id="merge-notebook-details"></span></h3>
+        </div>
+        <div class="modal-body">
+          <div class="overlay">
+            <img src="/img/ajax-loader.gif">
+            <p class="getting">Getting changes</p>
+            <p class="applying">Applying changes</p>
+          </div>
+          <div id="merge-init-section">
+            <p>Merge changes from another notebook into your current notebook.</p>
+            <label for="merge-changes-by">Notebook source:</label>
+            <select id="merge-changes-by">
+              <option value="url">URL</option>
+              <option value="id" selected="selected">Notebook id</option>          
+              <option value="file">File</option>
+            </select>
+            <div data-by="url">
+              <label for="merge-notebook-url">Notebook URL:</label>
+              <input type="text" data-pull="change paste keyup" id="merge-notebook-url" size="50" spellcheck="false" />
+            </div>
+            <div data-by="id">
+              <label for="merge-notebook-id">Notebook ID:</label>
+              <input type="text" data-pull="change paste keyup" id="merge-notebook-id" size="32" spellcheck="false" />
+            </div>          
+            <div data-by="file">
+              <input type="file" data-pull="change" id="merge-notebook-file" size="32" />
+            </div>
+          </div>
+
+          <div id="merge-compare-section" data-spy="scroll" data-target="#compare-file-list">
+              <div class="row">
+                <nav id="compare-file-list" class="col-sm-4"></nav>
+                <div id="compare-stage" class="col-sm-8"></div>
+              </div>
+          </div>
+        </div>
+          <div class="modal-footer">
+              <span class="btn btn-primary btn-merge">Merge</span>
+              <span class="btn btn-cancel" data-dismiss="modal">Cancel</span>
+              <span class="btn btn-primary show-changes">Show changes</span>
+          </div>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/template" id="compare-file-list-snippet">
+      <table>
+      <tbody>
+      <% _.each(files, function(file) { %>
+      <tr data-filetype="<%=file.type%>" data-filename="<%=file.filename%>" data-section="<%=file.filename%>-section" class="<%= file.isBinary ? 'binary' : 'nonbinary' %>" 
+        <%= file.isBinary ? 'title="This is a binary asset and cannot be compared"' : '' %>>
+        <td class="type">
+          <% if(file.type === 'asset') { %>
+            <i class="icon-file" title="Asset"></i>
+          <% } else if(file.type === 'part') { %>
+            <i class="icon-file-text" title="Notebook part"></i>
+          <% } %>
+        </td>
+        <td class="isto"><span></span></td>
+        <td class="changes">
+          <img src="/img/spinner16.gif" alt="Getting changes" width="16" height="16" class="diffLoader" />
+          <span class="modify" style="display:none"><i class="icon-edit"></i><span class="count"></span><span class="total"></span></span>
+          <span class="add" style="display:none"><i class="icon-plus"></i></span>
+          <span class="remove" style="display:none"><i class="icon-remove"></i></span>
+          <span class="equal" style="display:none" title="This file has no changes"><i class="icon-pause"></i></span>
+        </td>
+      </tr>
+      <% }); %>
+      </tbody>
+    </table>
+</script>
+
+<script type="text/template" id="compare-stage-snippet">
+      <div class="panel-group">
+      <% _.each(files, function(file) { %>
+          <div data-section="<%=file.filename%>-section" class="panel diff-panel">
+              <div class="panel-heading"><img src="/img/spinner16.gif" alt="Getting changes" width="16" height="16" class="diffLoader" /><%=file.filename%></div>
+              <div class="panel-body" data-filetype="<%=file.type%>" data-filename="<%=file.filename%>"></div>
+          </div>
+      <% }); %>
+      </div>
+</script>
+
+<script type="text/html" id="selection-bar-snippet">
+  <div id="selection-bar">
+    <div class="btn-group">
+      <div type="button" class="btn btn-default cell-selection" title="Select All/None">
+          <input type="checkbox" /><span>&ndash;</span>
+      </div>
+      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+        <span class="caret"></span>
+        <span class="sr-only">Toggle Dropdown</span>
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="selection-menu">
+        <li><a href="javascript:void(0)" data-action="select_all_cells">All</a></li>
+        <li><a href="javascript:void(0)" data-action="clear_all_selected_cells">None</a></li>
+        <li><a href="javascript:void(0)" data-action="invert_selected_cells">Invert</a></li>
+      </ul>
+    </div>
+    <button id="selection-bar-toggle-results" title="Hide/Show results of cells" type="button" class="btn btn-link navbar-btn">
+      <i class="icon-picture"></i>
+    </button>
+    <button id="selection-bar-crop" title="Crop cells (delete unselected cells)" type="button" class="btn btn-link navbar-btn">
+      <i class="icon-crop"></i></button>    
+    <button id="selection-bar-delete" title="Delete selected cells" type="button" class="btn btn-link navbar-btn">
+      <i class="icon-trash"></i><span id="selected-count"></span><span> of </span><span id="cell-count"></span>
+    </button>
+  </div>
+</script>
+
+<script type="text/html" id="assets-snippet">
+  <div id="scratchpad-wrapper" class="panel-body" style="padding:0;border:0;position:relative;z-index:1;">
+    <div id="asset-drop-overlay" class="drop-asset-body">
+      <h1>Drop File to Asset</h1>
+    </div>
+    <div id="asset-area">
+      <div id="asset-list-wrapper">
+
+        <div id="manage-thumb">
+          <button id="update-thumb" class="btn btn-primary" style="display:none" title="Change Thumbnail"><i class="icon-camera"></i></button>
+        </div>
+
+        <ul class="nav nav-tabs" id="asset-list"
+            style="background-color:white; padding-top:5px;
+                   padding-left: 5px"><li id="new-asset"><a href="#">[New Asset]</a></li></ul>
+      </div>
+      <div id="scratchpad-editor-wrapper">
+        <div id="scratchpad-editor" class="widget-vsize">
+        </div>
+        <div id="scratchpad-binary">
+        </div>
+        <a id="asset-link" target="_blank" href="#">link <i class="icon-share"></i></a>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/html" id="file-upload-snippet">
+  <div class="panel-body">
+    <div id="file-upload-div" class="widget-vsize">
+      <div id="file-upload-wrapper">
+        <div id="file-upload-controls" class="btn-group-sm">
+          <input type="file" id="file" style="display: inline;" multiple></input>
+          <span class="checkbox" style="display: inline-block;">
+            <label>
+              <input type="checkbox" id="upload-to-notebook"/>
+              <span>Upload to notebook</span>
+	    </label>
+          </span>
+          <button id="upload-submit" class="btn btn-default-ext" type="submit" title="Upload File(s)" style="float: right;width: 33px;">
+            <i class="icon-upload-alt"></i>
+          </button>
+          <div class="progress" style="display:none">
+            <div id="progress-bar" class="progress-bar" id="file-progress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
+          </div>
+        </div>
+        <div id="file-upload-results-row">
+          <div id="file-upload-results-scroller">
+            <div id="file-upload-results">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/html" id="comments-snippet">
+  <div class="panel-body">
+    <div id="comments-wrapper">
+      <div id="comments-qux" class="widget-vsize">
+        <div id="comments-container"></div>
+        <div id="comment-entry" class="btn-group-sm">
+          <textarea id="comment-entry-body" class="form-control-ext"></textarea>
+          <button id="comment-submit" class="btn btn-default-ext" type="submit" title="Add Comment" style="width: 33px; vertical-align: top;">
+            <i class="icon-comment"></i>
+          </button>
+        </div>
+        <div id="comments-not-allowed" style="display: none">
+          <p><em>Cannot comment on notebooks in other lakes.</em></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/html" id="session-info-snippet">
+  <div class="panel-body tight" id="session-info-panel">
+    <div id="session-info" class="widget-vsize"></div>
+  </div>
+</script>
+
+<script type="text/html" id="session-info-panel-heading">
+  <div class="heading-controls" id="session-panel-controls">
+    <button class="btn-link" id="clear-session" title="Clear Session Pane">
+      <i class="icon-eraser"></i>
+    </button>
+  </div>
+</script>
+
+<script type="text/html" id="command-prompt-snippet">
+  <div id="prompt-area" class="rcloud-prompt nonselectable">
+    <div class="cell-status prompt">
+      <div class="cell-control-bar">
+      </div>
+    </div>
+
+    <div id="command-prompt" style="float: left; width:100%;
+            height: 50px; background:#FFFFFF; border:1px solid
+            #DDDDDD"></div>
+  </div>
+</script>
+
+<script type="text/html" id="left-pane-collapser-snippet">
+  <div style="position: absolute; left:0; top:0px">
+    <svg height="20" width="20" id="notebook-clicker" style="position:absolute; left:0; top:0px">
+      <polygon points="0,0 20,0 0,20" style="fill:#222;stroke:none"/>
+    </svg>
+    <a id="left-pane-collapser" title="Collapse Pane"><i class="icon-minus" style="font-size:0.8em; color:#999; position:absolute; left:2px; top:1px; cursor:pointer"></i> </a>
+  </div>
+</script>
+
+<script type="text/html" id="right-pane-collapser-snippet">
+  <div style="position: absolute; right:0; top:0px">
+    <svg height="20" width="20" id="notebook-clicker" style="position:absolute; right:0; top:0px">
+      <polygon points="0,0 20,0 20,20" style="fill:#222;stroke:none"/>
+    </svg>
+    <a id="right-pane-collapser" title="Collapse Pane"><i class="icon-minus" style="font-size:0.8em; color:#999; position:absolute; right:2px; top:1px; cursor:pointer"></i> </a>
+  </div>
+</script>
+
+<script type="text/html" id="notebook-protection-modal">
+
+  <div class="modal-body" id='protection-app' ng-controller='NotebookProtectionController' ng-cloak>
+    <div>
+      <!-- Nav tabs -->
+      <ul class="nav nav-tabs">
+        <li id='tab1'><a ng-click="setTab(1)" data-toggle="tab" href="#notebook-tab" >Notebook</a></li>
+        <li id='tab2'><a ng-click="setTab(2)" data-toggle="tab" href="#group-tab">Group</a></li>
+      </ul>
+      <!-- tab content -->
+      <div class="tab-content">
+        <!-- first tab -->
+        <div class="tab-pane active inner-tab" id="notebook-tab">
+          <div class="row sec" style="word-break:break-all;">
+            {{notebookFullName}}
+          </div>
+          <div class="row sec">
+            <input id="redRadio" type="radio" ng-model="sharedStatus" value="public" />&nbsp;&nbsp;<label for="redRadio">Public</label>&nbsp;&nbsp;&nbsp;
+            <input id="yellowRadio" type="radio" ng-model="sharedStatus" value="private" />&nbsp;&nbsp;<label for="yellowRadio">Private</label>&nbsp;&nbsp;&nbsp;
+            <input id="greenRadio" type="radio" ng-disabled="!allUserGroups.length" ng-model="sharedStatus" value="group" />&nbsp;&nbsp;<label for="greenRadio">Group</label><br />
+          </div>
+          <div class="row sec" ng-show="allUserGroups.length">
+            <span>Assign to Group</span>&nbsp;&nbsp;&nbsp;
+            <select ng-model="selectedUserGroup"
+                    ng-disabled="sharedStatus !== 'group'"
+                    ng-options="group.name for group in allUserGroups | orderBy:'name'"
+                    ng-change="anotherUserGroupSelected()">
+            </select>
+          </div>
+          <div class="row sec" ng-hide="allUserGroups.length">
+            <span>you are not a member of any groups, but you can create one in the<a href="#"> "Group"</a> dialog</span>
+          </div>
+        </div>
+        <!-- end first tab -->
+        <!-- second tab -->
+        <div class="tab-pane inner-tab" id="group-tab">
+          <div class="row sec">
+            <div class='col-md-6' style='padding-left: 0px;' ng-show="allAdminGroups.length" >
+              <span>Select group:</span></br>
+              <select ng-model="selectedAdminGroup"
+                      ng-options="group.name for group in allAdminGroups | orderBy:'name'"
+                      ng-change="anotherAdminGroupSelected()" >
+              </select>
+            </div>
+            <div class='col-md-6' style='padding-left: 0px;' ng-hide="allAdminGroups.length" >
+              <span>You are not an administrator of any groups; please create one.</span><br />
+            </div>
+            <div class='col-md-6'>
+              <span class="label label-info group-actions" ng-click="createGroup()">Create
+              Group</span><br /><br />
+              <span class="label label-info group-actions" ng-click="renameGroup()">Rename
+              Group</span><br /><br />
+              <span ng-hide="true" class="label label-danger group-actions" ng-click="deleteGroup()">Delete
+              Group</span>
+            </div>
+          </div>
+          <div class="row sec">
+            <div class="form-group">
+              <label for="comment">Admins:</label>
+              <selectize ng-disabled='!allAdminGroups.length' options='allUsers' config="myConfig" ng-model="groupAdmins"></selectize>
+            </div>
+          </div>
+          <div class="row sec">
+            <div class="form-group">
+              <label for="comment">Members:</label>
+              <selectize ng-disabled='!allAdminGroups.length' options='allUsers' config="myConfig" ng-model="groupMembers"></selectize>
+            </div>
+          </div>
+
+          <div class="row sec">
+            <div class='group-changes-panel'>
+            </div>
+          </div>
+        </div>
+        <!-- second tab -->
+        <div class="modal-footer">
+
+          <div class='logging-panel green'>
+            <span></span>
+          </div>
+          <span class="btn btn-cancel" ng-click='cancel()'>Cancel</span>
+          <span class="btn btn-save btn-default" ng-click='save()'>OK</span>
+        </div>
+      </div>
+      <!-- end tab content -->
+    </div>
+  </div>
+</script>
+
+<div id="thumb-dialog" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background-color: rgba(255, 255, 255, 1.0)">
+          <div class="modal-header" style="padding-left:20px!important;padding-right:20px!important">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+              <h3 class="modal-title">Update thumbnail</h3>
+          </div>
+          <div class="modal-body" style="max-height:calc(100vh - 200px);">
+            <p>Show off your work on the RCloud Discover Page by uploading an image to be shown with your notebook.</p>
+
+            <div id="thumb-drop-overlay" class="drop-asset-body" data-height="250">
+              <div class="inner">
+                <h1>Drop or Paste a PNG here</h1>
+                <h3>or</h3>
+                <input type="file" id="selected-file" style="display: none;" />
+                <input type="button" class="btn btn-primary" id="thumb-upload" value="Browse..." />
+              </div>
+
+              <div id="upload-success">
+                <i class="icon-ok-circle"></i>
+                <h3>That looks awesome!</h3>
+              </div>
+
+              <i class="icon-remove" id="thumb-remove"></i>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <span class="btn btn-cancel">Cancel</span>
+            <span class="btn btn-primary">Update</span>
+          </div>
+      </div>
+  </div>
+</div>
+
+<div id="shortcut-dialog" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background-color: rgba(255, 255, 255, 1.0)">
+            <div class="modal-header" style="padding-left:20px!important;padding-right:20px!important">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+                <h4 class="modal-title" style="font-size: 20px">Shortcuts</h4>
+            </div>
+            <div class="modal-body" style="padding-top: 0; max-height:calc(100vh - 120px); overflow-y: auto;">
+              <div id="shortcut-content"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/template" id="shortcut_dialog_content_template">
+<% _.each(categories, function(category) { %>
+  <div class="category">
+    <h3><%=category.name%></h3>
+    <table>
+      <tbody>
+        <% _.each(category.shortcuts, function(shortcut) { %>
+          <tr>
+            <td>
+              <% _.each(shortcut.keys, function(key_combo, index) { %>
+                <%if(index > 0) {%> / <%}%>
+                <%if(_.isObject(key_combo)) { %>
+                  <kbd><%=key_combo.keys%> click</kbd> <span>on the</span> <span class="target"><%=key_combo.target%></span>
+                <% } else { %>
+                  <kbd><%=key_combo%></kbd>
+                <% } %>
+              <% }); %>
+            </td>
+            <td>
+              <%=shortcut.description%>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+<% }); %>
+</script>
+
+<script type="text/template" id="item_template">
+  <% _.each(notebooks, function(notebook) { %>
+  <div class="grid-item">
+    <a href="edit.html?notebook=<%=notebook.id%>">
+
+      <div class="row" style="position:relative">
+        <div class='header col-sm-10'>
+          <h1><%=notebook.description%></h1>
+          <h2><%=notebook.last_commit%> by <%=notebook.username%> </h2>
+        </div>
+        <div class="star-holder">
+          <button id="star-notebook" title="Add to Interests" type="button" class="btn btn-link navbar-btn" style="padding-left: 3px">
+            <i class="icon-star"></i><sub><span id="curr-star-count"><%=editor.num_stars(notebook.id)%></span></sub>
+          </button>
+        </div>
+        <div class="fork-holder">
+          <button id="fork-notebook" title="Fork" type="button" class="btn btn-link navbar-btn" style="padding-left: 3px">
+            <i class="icon-code-fork"></i><sub><span id="curr-fork-count"><%=editor.fork_count(notebook.id)%></span></sub>
+          </button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="image-holder col-sm-12">
+          <img src="<%=notebook.image_src%>" class="img-responsive" alt="Responsive image">
+        </div>
+      </div>
+    </a>
+  </div>
+  <% }); %>
+</script>
+
+<script type="text/template" id="tree-finder-template">
+  <div id="tree-finder-dialog" class="modal fade" aria-hidden="false">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-body">
+          <div class="row"><label><span>Notebook name</span><input /></label></div>          
+          <div class="row"><label><span>Username</span><input /></label></div>    
+          <div class="results"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/template" id="tree-finder-result-template">
+  <% if(notebooks.length) { %>
+  <% _.each(notebooks, function(notebook) { %>   
+    <p data-id="<%=notebook.id%>"><%=notebook.name%> <span class="creator"><%=notebook.author%></span><span class="star_count"><%=notebook.star_count%><i class="icon-star"></i></span></p>
+  <% }); %>  
+  <% } else { %>
+    <p>No matching results</p>    
+  <% } %>
+</script>
+
+<div class="container nopad" id="main-div">
+  <div class="row">
+    <div class="col-md-1 col-sm-1 no-padding" style="height:100%" id="left-column">
+      <div id="tabs-2">
+        <div class="tab-div">
+          <div class="panel-group" id="accordion-left">
+            <!-- filled in by RCloud.UI.load_panels -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-10 col-sm-10 no-padding" id="middle-column">
+
+      <div id="selection-bar"><!-- replaced by load_snippet call --></div>
+
+      <div id="rcloud-cellarea">
+
+        <span id="notebook-left-resizer" class="notebook-sizer left">
+          <span class="bar"></span>
+        </span>
+        <span id="notebook-right-resizer" class="notebook-sizer right">
+          <span class="bar"></span>
+        </span>
+
+        <div id="output" class="tab-div">
+
+        </div>
+
+        <div id="end-of-output"></div>
+
+      </div>
+    </div>
+    <div class="col-md-1 col-sm-1 no-padding" style="height:100%; min-height: 0" id="right-column">
+      <div id="right-tabs">
+        <div class="tab-div">
+          <div class="panel-group" id="accordion-right">
+            <!-- filled in by RCloud.UI.load_panels -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- For some bizarre reason, line numbering has garbage characters on --
+  -- the minified version, so we use the unminified version instead.
+
+  -- We use a bundle version of ace and the bindings from RStudio
+  -- to reduce the number of HTTP requests
+  -- going out. Shouldn't be an issue when SPDY becomes the new
+  -- standard, but until then...
+
+    ace.js                              http://ace.ajax.org
+
+  -->
+
+<script type="text/javascript"
+        src="/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+<script type="text/javascript">window.MathJax ? MathJax.Hub.Config(
+    {
+        tex2jax: {processEscapes: true,
+                  processEnvironments: false, inlineMath: [ ['\\(','\\)'] ],
+                  displayMath: [ ['\\[','\\]'] ] },
+        "HTML-CSS": { minScaleAdjust: 125 }
+    }) : console.warn('MathJax not available');
+</script>
+
+</body></html>

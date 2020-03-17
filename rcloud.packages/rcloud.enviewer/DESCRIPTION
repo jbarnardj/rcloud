@@ -1,0 +1,8 @@
+Package: rcloud.enviewer
+Title: Environment Viewer support for RCloud
+Version: 0.1
+Author: Gordon Woodhull <gordon@research.att.com>, Simon Urbanek <urbanek@research.att.com>
+Maintainer: Gordon Woodhull <gordon@research.att.com>
+Description: rcloud.enviewer displays the current workspace environment live in RCloud
+Depends: rcloud.support
+License: MIT

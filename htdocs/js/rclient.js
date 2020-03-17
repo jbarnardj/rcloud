@@ -1,324 +1,115 @@
-(function() {
-
-// takes a string and returns the appropriate r literal string with escapes.
-function escape_r_literal_string(s) {
-    return "\"" + s.replace(/\\/g, "\\\\").replace(/"/g, "\\\"") + "\"";
-    // return "\"" + s.replace(/"/g, "\\\"") + "\"";
-}
+// FIXME all RCloud.*.post_error calls should be handled elsewhere
 
 RClient = {
-    create: function(host, onconnect) {
-        var socket = new WebSocket(host);
+    create: function(opts) {
+        opts = _.defaults(opts, {
+            debug: false
+        });
+        function on_connect() {
+            if (!rserve.ocap_mode) {
+                RCloud.UI.session_pane.post_error(ui_utils.disconnection_error("Expected an object-capability Rserve. Shutting Down!"));
+                shutdown();
+                return;
+            }
 
-        var _debug = true;
-        var _capturing_answers = false;
-        var _capturing_callback = undefined;
-        var _received_handshake = false;
+            // the rcloud ocap-0 performs the login authentication dance
+            // success is indicated by the rest of the capabilities being sent
+            var session_mode = (opts.mode) ? opts.mode : "client";
+            rserve.ocap([token, execToken], session_mode, RCloud.version, function(err, ocaps) {
+                if(err)
+                    on_error(err[0], err[1]);
+                else {
+                    ocaps = Promise.promisifyAll(ocaps);
+                    console.log('Connected to rcloud host', ocaps.rcloud.hostname[0]);
+                    if(ocaps === null) {
+                        on_error("Login failed. Shutting down!");
+                    }
+                    else if(RCloud.is_exception(ocaps)) {
+                        on_error(ocaps);
+                    }
+                    else {
+                        result.running = true;
+                        /*jshint -W030 */
+                        opts.on_connect && opts.on_connect.call(result, ocaps);
+                    }
+                }
+            });
+        }
 
-        var result;
-        var command_counter = 0;
-        
-        socket.binaryType = 'arraybuffer';
+        // this might be called multiple times; some conditions result
+        // in on_error and on_close both being called.
+        function shutdown() {
+            if (!clean) {
+                $("#input-div").hide();
+            }
+            if (!rserve.closed)
+                rserve.close();
+        }
 
-        function hand_shake(msg)
-        {
-            msg = msg.data;
-            if (msg.substr(0,4) !== 'Rsrv') {
-                result.post_error("server is not an RServe instance");
-            } else if (msg.substr(4, 4) !== '0103') {
-                result.post_error("sorry, I can only use the 0103 version of the R server protocol");
-            } else if (msg.substr(8, 4) !== 'QAP1') {
-                result.post_error("sorry, I only speak QAP1");
-            } else {
-                _received_handshake = true;
-                // result.post_response("Welcome to R-on-the-browser!");
-                result.running = true;
-		result.send(".session.init()");
-                onconnect && onconnect.call(result);
+        function on_error(msg, status_code) {
+            if (opts.debug) {
+                /*jshint -W087 */
+                debugger;
+            }
+            if (opts.on_error && opts.on_error(msg, status_code))
+                return;
+            shutdown();
+        }
+
+        function on_close(msg) {
+            if (opts.debug) {
+                /*jshint -W087 */
+                debugger;
+            }
+            if (!clean) {
+                if(!window.rcloud) // e.g. websocket handshake cancelled
+                    RCloud.UI.fatal_dialog("Could not connect to server.", "Retry", window.location.href);
+                else if(!rcloud.username()) // anonymous
+                    RCloud.UI.fatal_dialog("Your session closed unexpectedly.", "Reload", window.location.href);
+                else // logged in
+                    RCloud.UI.fatal_dialog("Your session has been logged out.", "Reconnect", ui_utils.relogin_uri());
+                shutdown();
             }
         }
 
-        socket.onmessage = function(msg) {
-            if (_capturing_answers) {
-                try {
-                    _capturing_callback(result.eval(parse(msg.data)));
-                } catch (e) {
-                    _capturing_answers = false;
-                    _capturing_callback = undefined;
-                    throw e;
-                }
-            } else {
-                if (!_received_handshake) {
-                    hand_shake(msg);
-                    return;
-                }
-                if (typeof msg.data === 'string')
-                    result.post_response(msg.data);
-                else {
-                    result.eval(parse(msg.data));
-                }
-            }
-        };
+        var token = $.cookies.get().token;  // document access token
+        var execToken = $.cookies.get().execToken; // execution token (if enabled)
+        var rserve = Rserve.create({
+            host: opts.host,
+            on_connect: on_connect,
+            on_error: on_error,
+            on_close: on_close,
+            on_data: opts.on_data,
+            on_oob_message: opts.on_oob_message
+        });
 
-        socket.onclose = function(msg) {
-            result.post_response("Socket was closed. Goodbye!");
-        };
+        var result;
+        var clean = false;
 
         result = {
-            handlers: {
-                "eval": function(v) {
-                    if (v.value.length === 3) {
-                        var command_id = v.value[2].value[0];
-                        var cb = this.result_handlers[command_id];
-                        // if there's a callback attached, call it.
-                        // otherwise, display it.
-                        if (cb) {
-                            cb(command_id, v.value[1]);
-                        } else {
-                            result.display_response(v.value[1]);
-                        }
-                    }
-                    return v.value[1]; 
-                },
-                "markdown.eval": function(v) {
-                    if (v.value.length === 3) {
-                        var command_id = v.value[2].value[0];
-                        var cb = this.result_handlers[command_id];
-                        // if there's a callback attached, call it.
-                        // otherwise, display it.
-                        if (cb) {
-                            cb(command_id, v.value[1]);
-                        } else {
-                            result.display_markdown_response(v.value[1]);
-                        }
-                    }
-                    return v.value[1]; 
-                },
-		// FIXME: I couldn't get this.post_* to work from here so this is just to avoid the error ... it's nonsensical, obviously
-		"img.url.update": function(v) { return v.value[1]; },
-		"img.url.final": function(v) { return v.value[1]; },
-		"dev.new": function(v) { return ""; },
-		"dev.close": function(v) { return ""; },
-                "internal_cmd": function(v) { return ""; },
-                "boot.failure": function(v) { 
-                    result.running = false;
-                }
-            },
+            _rserve: rserve,
+            host: opts.host,
             running: false,
-            result_handlers: {},
-
-            eval: function(data) {
-                var that = this;
-                if (data.type !== "sexp") {
-                    return this.post_error("Bad protocol, should always be sexp.");
-                }
-                data = data.value;
-                if (data.type === "string_array") {
-                    return this.post_error(data.value[0]);
-                }
-                if (data.type === "null") {
-                    return null;
-                }
-                if (data.type !== "vector") {
-                    return this.post_error("Protocol error, unexpected value of type " + data.type);
-                }
-                if (data.value[0].type !== "string_array" ||
-                    data.value[0].value.length !== 1) {
-                    return this.post_error("Protocol error, expected first element to be a single string");
-                }
-                var cmd = data.value[0].value[0];
-                var cmds = this.handlers;
-                if (cmds[cmd] === undefined) {
-                    return this.post_error("Unknown command " + cmd);
-                }
-		if (cmd == "img.url.update" || cmd == "img.url.final") {
-		    // FIXME: this is a bad hack storing in the window - do something more reasonable ;)
-		    var ix = window.devImgIndex;
-		    if (!ix) window.devImgIndex = ix = 1;
-		    if (cmd == "img.url.final") window.devImgIndex++;
-		    var div = document.getElementById("dimg"+ix);
-		    if (div) // FIXME: we may want to move the div down as well -- maybe just remove the old one and add a new one?
-			div.innerHTML = "<img src="+data.value[1].value[0]+">";
-		    else
-			this.post_div("<div id=dimg"+ix+"><img src="+data.value[1].value[0]+"></div>");
-		}
-                return cmds[cmd].call(this, data);
-            },
-
-            register_handler: function(cmd, callback) {
-                this.handlers[cmd] = callback;
-            },
-
-            post_sent_command: function (msg) {
-                var d = $('<pre class="r-sent-command"></pre>').html('> ' + msg);
-                $("#output").append(d);
-            },
-
-            post_debug_message: function (msg) {
-                var view = new Uint8Array(msg);
-                var x = Array.prototype.join.call(view, ",");
-                this.post_response(x);
-            },
-
-            post_div: function (msg) {
-                return shell.post_div(msg);
-            },
-
-            post_binary_response: function(msg) {
-                if (_debug) {
-                    this.post_debug_message(msg);
-                    this.display_response(parse(msg));
-                } else {
-                    try {
-                        this.display_response(parse(msg));
-                    } catch (e) {
-                        this.post_error("Uncaught exception: " + e);
-                    }
-                }
-            },
-
-            display_response: function (result) {
-                if (result) $("#output").append(result.html_element());
-                window.scrollTo(0, document.body.scrollHeight);
-            },
-
-            display_markdown_response: function(result) {
-                if (result) {
-                    $("#output")
-                        .append($("<div></div>")
-                                .html(result.value[0]))
-                        .find("pre code")
-                        .each(function(i, e) { 
-                            hljs.highlightBlock(e); 
-                        });
-                    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-                }
-            },
-
-            post_error: function (msg) {
-                var d = $("<div class='error-message'></div>").html(msg);
-                $("#output").append(d);
-                window.scrollTo(0, document.body.scrollHeight);
-            },
 
             post_response: function (msg) {
-                var d = $("<pre></pre>").html(msg);
-                $("#output").append(d);
-                window.scrollTo(0, document.body.scrollHeight);
+                var response = d3.select('#output').selectAll('pre.response').data([msg]);
+                response.exit().remove();
+                response.enter().append('pre')
+                    .attr('class', 'response');
+                response
+                    .html(d => d);
             },
 
-            capture_answers: function (how_many, callback) {
-                if (_capturing_answers) {
-                    throw "Still waiting for previous answers...";
-                }
-                _capturing_answers = true;
-                var result = [];
-                function blip(msg) {
-                    result.push(msg);
-                    how_many--;
-                    if (how_many === 0) {
-                        _capturing_answers = false;
-                        _capturing_callback = undefined;
-                        callback(result);
-                    }
-                }
-                _capturing_callback = blip;
+            post_rejection: function(e) {
+                RCloud.UI.session_pane.post_error(e.message);
+                throw e;
             },
 
-            wrap_command: function(command, silent) {
-                // FIXME code injection? notice that this is already eval, so
-                // what _additional_ harm would exist?
-                var this_command = command_counter++;
-                if (silent === undefined) {
-                    silent = false;
-                }
-                return [ ".session.eval({" + command + "}, "
-                         + this_command + ", "
-                         + (silent?"TRUE":"FALSE") + ")",
-                         this_command ];
-            },
-
-            markdown_wrap_command: function(command, silent) {
-                var this_command = command_counter++;
-                return [ ".session.markdown.eval({markdownToHTML(text=paste(knit(text=" + escape_r_literal_string(command+'\n') + "), collapse=\"\\n\"), fragment=TRUE)}, "
-                         + this_command + ", "
-                         + (silent?"TRUE":"FALSE") + ")",
-                         this_command ];
-            },
-
-            log: function(command) {
-                command = ".session.log(\"" + rcloud.username() + "\", \"" +
-                    command.replace(/\\/g,"\\\\").replace(/"/g,"\\\"")
-                + "\")";
-                this.send(command);
-            },
-
-            send: function(command, wrap) {
-                if (!result.running) {
-                    alert("Init failed, cannot communicate with R process");
-                    return;
-                }
-                if (!_.isUndefined(wrap)) command = wrap(command)[0];
-                var buffer = new ArrayBuffer(command.length + 21);
-                var view = new EndianAwareDataView(buffer);
-                view.setInt32(0,  3);
-                view.setInt32(4,  5 + command.length);
-                view.setInt32(8,  0);
-                view.setInt32(12, 0);
-                view.setInt32(16, 4 + ((1 + command.length) << 8));
-                for (var i=0; i<command.length; ++i) {
-                    view.setUint8(20 + i, command.charCodeAt(i));
-                }
-                view.setUint8(buffer.byteLength - 1, 0);
-
-                socket.send(buffer);
-            },
-
-            record_cell_execution: function(cell_model) {
-                var json_rep = JSON.stringify(cell_model.json());
-                var call = rclient.r_funcall("rcloud.record.cell.execution", 
-                                             rcloud.username(), json_rep);
-                rclient.send(call);
-            },
-
-            send_and_callback: function(command, callback, wrap) {
-                if (_.isUndefined(callback))
-                    callback = _.identity;
-                var t;
-                if (wrap) {
-                    t = wrap(command);
-                } else {
-                    t = this.wrap_command(command, true);
-                }
-                var command_id = t[1];
-                command = t[0];
-                var that = this;
-                this.result_handlers[command_id] = function(id, data) {
-                    delete that.result_handlers[id];
-                    callback(data);
-                };
-                this.send(command);
-            },
-
-            // FIXME this needs hardening
-            r_funcall: function(function_name) {
-                var result = [function_name, "("];
-                for (var i=1; i<arguments.length; ++i) {
-                    var t = typeof arguments[i];
-                    if (t === "string") {
-                        result.push(escape_r_literal_string(arguments[i]));
-                    } else
-                        result.push(String(arguments[i]));
-                    if (i < arguments.length-1)
-                        result.push(",");
-                }
-                result.push(")");
-                var s = result.join("");
-                return s;
+            close: function() {
+                clean = true;
+                shutdown();
             }
         };
         return result;
     }
 };
-
-})();

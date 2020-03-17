@@ -1,0 +1,15 @@
+#!/bin/sh
+
+: ${JAVA=/usr/bin/java}
+if [ -z "$ROOT" ]; then
+    echo Defaulting ROOT to /data/rcloud
+    ROOT=/data/rcloud
+fi
+cd $ROOT/services/SessionKeyServer
+
+if [ ! -e key.db ]; then
+   mkdir key.db
+   chmod 0700 key.db
+fi
+
+exec $JAVA -Xmx256m -Djava.library.path=. -cp SessionKeyServer.jar com.att.research.RCloud.SessionKeyServer -tls /etc/ssl/rcloud/rcloud.jks -PF /etc/ssl/rcloud/rcloud.jks.pwd -p 4301 -d key.db >> server.log

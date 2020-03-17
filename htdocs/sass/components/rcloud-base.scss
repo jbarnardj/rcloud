@@ -1,0 +1,1235 @@
+.navbar {
+    margin-bottom: 0;
+    border-radius: 0;
+}
+
+.navbar-inverse {
+    .navbar-brand {
+        &:visited {
+            color: #999;
+        }
+        &:hover {
+            color: white;
+        }
+    }
+}
+
+body {
+    margin: 0;
+}
+
+pre {
+    border-radius: 0;
+    border: 0;
+    margin-bottom: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+}
+
+pre:not([class]) {
+    background-color: white;
+}
+
+
+code {
+    border-radius: 0;
+    padding: 0;
+    color: black;
+}
+
+.response {
+    padding: 16px;
+}
+
+
+.collapsing {
+    -webkit-transition: none;
+    transition: none;
+}
+
+.container.nopad {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* do not use max width from bootstrap */
+@media all {
+    .container {
+        max-width: none;
+    }
+}
+
+.no-padding {
+    padding-left: 0;
+    padding-right: 0;
+    min-height: 0;
+}
+
+.row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.code-div {
+    position: relative;
+    tab-size: 4;
+}
+
+.code-div pre {
+    padding-bottom: 2px;
+    background-color: #f5f5f5;
+    cursor: text;
+}
+
+.code-div pre code {
+    padding: 0px 6px 0px 54px;
+    font-size: 12px;
+    max-width: 800px;
+    margin-right: auto;
+    margin-left: 0;
+    white-space: pre-wrap;
+    word-break: normal;
+}
+
+.mac .code-div pre code {
+    line-height: normal;
+}
+
+.win .code-div pre code {
+    line-height: 1.2;
+    padding-top: 1px;
+}
+
+.linux .code-div pre code {
+    line-height: 1.1;
+    padding-top: 1px;
+    font-size: 11px;
+}
+
+.win.gecko .code-div pre code {
+    line-height: 1.167;
+}
+
+.linux.gecko .code-div pre code {
+    padding-top: 0px;
+    line-height: 1.18;
+}
+
+.code-div .rcloud-gutter {
+    background-color: #f5f5f5;
+    position: absolute;
+    width: 48px;
+    height: 100%;
+    cursor: pointer;
+}
+
+.notebook-cell.selected .code-div .rcloud-gutter,
+.notebook-cell.selected .ace_gutter-layer {
+    background-color: #ffc;
+}
+
+.notebook-cell.selected .ace-chrome .ace_gutter-active-line {
+    background-color: rgba(0, 0, 0, 0.1);
+    z-index: 1;
+}
+
+.rcloud-line-number-position {
+    position: relative;
+    bottom: 0;
+}
+
+.rcloud-line-number {
+    position: absolute;
+    text-align: right;
+    right: 17px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    font-size: 12px;
+}
+
+.win .rcloud-line-number {
+    bottom: 0;
+}
+
+/* what does this do exactly? */
+.code-div pre code.r, .code-div pre code.py {
+    max-width: inherit;
+}
+
+.r-result-div {
+    padding: 16px;
+}
+
+.r-result-div:empty {
+    padding: 0;
+}
+
+.r-result-div pre {
+    font-size: 12px;
+    cursor: text;
+}
+
+.r-result-div .non-result {
+    font-style: italic;
+}
+
+
+.r-result-div p img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+.notebook-cell {
+    border-width: 0px;
+    padding: 0px;
+    margin-top: 0em;
+    background-color: white;
+}
+
+.live-plot {
+    display: inline-block;
+    position: relative;
+    overflow: visible;
+    max-width: 100%;
+}
+
+.live-plot-scroller {
+    display: inline-block;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.live-plot-commands {
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.live-plot-commands ul.dropdown-menu {
+    left: initial;
+    right: 0;
+}
+
+pre.offscreen {
+    position: absolute;
+    right: -100000;
+}
+
+.alert {
+    border-radius: 0;
+    border: 0;
+}
+
+.error-link {
+    text-decoration: underline;
+    color: #b94aee;
+    cursor: pointer;
+}
+
+.cell-status {
+    position: relative;
+    width: 100%;
+    height: 25px;
+    background-color: #f5f5f5;
+    color: #777;
+}
+
+.notebook-cell.selected .cell-status {
+    background-color: #ffc;
+}
+
+.cell-status-left {
+    position: absolute;
+    bottom: 2px;
+    left: 5px;
+}
+
+.left-indicator {
+    padding-left: 4px;
+}
+
+.state-icon {
+    display: inline-block;
+    width: 15px;
+    text-align: center;
+}
+
+.cell-controls {
+    z-index: 5; /* in order to beat the default */
+}
+
+td {
+    background-color: transparent;
+}
+
+body > .container {
+  .panel:first-child .panel-heading {
+    padding-top:10px;
+  }
+  
+  .panel-heading {
+    padding: 5px 15px;
+  }
+  
+  .panel-group .panel + .panel {
+    margin-top: 0;
+  }
+  
+  .panel-default {
+    .panel-heading {
+        border-style: none;
+    }
+  } 
+  
+  div.panel-heading:hover {
+      background-color: #888;
+      color: #0f0;
+  }
+  
+  .panel-default {
+      border: 0;
+  }
+  
+  .panel-scrollable-content {
+      overflow-y: auto;
+  }
+  
+  .panel {
+      border-radius: 0;
+  }
+  
+  .panel-group {
+    .panel {
+      border-radius: 0;
+      overflow: initial;
+    }
+  }
+}
+
+.popover {
+    max-width: 350px;
+}
+
+.popover-title {
+    padding: 4px 10px;
+    word-break: break-all;
+}
+
+.popover-content {
+    padding: 4px 10px;
+}
+
+.popover-content .info-category {
+    padding-bottom: 2px;
+}
+
+.popover-content .info-item a {
+    word-wrap: break-word;
+}
+
+#find-dialog {
+
+    position: relative;
+
+    #find-form {
+        margin-bottom: 0;
+        padding-bottom: 5px;
+        padding-left: 6px;
+    }
+
+    .icon-search {
+        font-size: 16px;
+        vertical-align: middle;
+    }
+
+    input[ type = "text"] {
+        width: 160px;
+        padding-right: 4px;
+        background-color: white!important;
+
+        &:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0px 1000px #fff inset;
+            box-shadow: 0 0 0px 1000px #fff inset;
+
+            &:hover,&:focus {
+                -webkit-box-shadow: 0 0 0px 1000px #fff inset;
+                box-shadow: 0 0 0px 1000px #fff inset;
+            }
+        }
+    }
+    
+    #find-options-menu {
+      .btn.active {
+        background-color: orange;
+      }
+    }
+    
+    .checkbox {
+      margin-bottom: 1px;
+      margin-top: 1px;
+      margin-left: 5px;
+    }
+
+    #find-input {
+        outline: none;
+        border: 0;
+    }
+
+    #replace-input {
+        border-radius: 0;
+    }
+
+    #find-close {
+        position: absolute;
+        cursor: pointer;
+        top: 10px;
+        right: 8px;
+        color: #777;
+        transition: color .2s linear;
+        font-size: 18px;
+
+        &:hover {
+            text-decoration: none;
+            color: #000;
+        }
+    }
+
+    #find-details {
+        display: inline-block;
+        border: 1px solid rgb(169, 169, 169);
+        padding: 1px;
+        background: white;
+        cursor: text;
+    }
+
+    .find, .replace {
+        display: inline-block;
+        padding: 6px 6px 0 6px;
+    }
+
+    .replace {
+
+        margin-left: 18px;
+
+        .btn {
+            padding: 3px 10px;
+        }
+    }
+}
+
+#match-status {
+    display: inline-block;
+    padding: 2px 5px;
+    visibility: hidden;
+    text-align: right;
+    color: #535353;
+    min-width: 50px;
+    @include no-select();
+}
+
+#match-status.no-matches {
+    background-color: #f66;
+    color: black;
+}
+
+.find-highlight {
+    background-color: yellow;
+}
+
+.find-highlight.active {
+    background-color: orange;
+}
+
+.find-highlight.replaced {
+    background-color: lightgreen;
+}
+.find-highlight.activereplaced {
+    background-color: peru;
+}
+
+.ace_start.find-highlight {
+    position: absolute;
+    z-index: 10;
+}
+
+.inner-tab {
+      padding: 30px;
+}
+
+.sec {
+    margin-bottom: 20px;
+}
+
+.pill-holder {
+    width: 100%;
+    min-height: 30px;
+    border: 1px solid gray;
+    padding: 10px;
+}
+
+.pill-item {
+    background-color: rgb(221, 221, 221);
+    max-width: 100px;
+    display: inline-block;
+    border-radius: 5px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.selectize-input {
+    min-height: 100px!important;
+}
+.selectize-control.multi .selectize-input [data-value] {
+    border-radius: 11px!important;
+}
+
+.group-actions {
+  cursor: pointer;
+}
+
+#protection-app select {
+  min-width: 78px!important;
+  max-width: 150px!important;
+  font-size: 15px!important;
+}
+
+.modal-header {
+    padding-left: 35px!important;
+    padding-right: 35px!important;
+}
+
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > div {
+  color: #555555;
+  cursor: default;
+  background-color: #ffffff;
+  border: 1px solid #dddddd;
+  border-bottom-color: transparent;
+}
+
+/* never collapse the navbar, from http://www.bootply.com/118426
+ */
+
+.navbar-nav {
+    margin:0;
+}
+
+.navbar-nav>li {
+    float:none;
+    display:inline-block;
+}
+
+.navbar-nav > li > div {
+    color: #999;
+    display: inline;
+
+    &:hover {
+        color: #fff;
+        cursor: pointer;
+    }    
+}
+
+.navbar-nav>li>a {
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+/*recent notebooks*/
+
+#notebooks-panel-inner {
+    position:relative;
+}
+
+.dropdown.recent-notebooks-dropdown {
+    right: 29px;
+    top: 0;
+}
+
+.dropdown.recent-notebooks-dropdown a.recent-btn{
+    color: #f1f1e5;
+    text-decoration: none;
+    padding: 5px;
+
+    .caret {
+        border-top-color: #f1f1e5;
+    }
+}
+
+ul.recent-notebooks-list {
+    left: 0;
+    top: 25px;
+    font-size: 12px;
+    max-width: 330px;
+    min-width: 220px;
+    min-height: 6em;
+    max-height: calc(100vh - 130px);
+    overflow: auto;
+}
+
+ul.recent-notebooks-list li {
+    max-width: 330px;
+    height: 2em;
+}
+
+ul.recent-notebooks-list li a.username:hover {
+    color: white!important;
+}
+
+ul.recent-notebooks-list li a .username {
+    display: inline-block;
+    max-width: 80px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+ul.recent-notebooks-list li a .description {
+    margin-left: 6px;
+    display: inline-block;
+    max-width: 235px;
+    overflow: hidden;
+}
+
+ul.recent-notebooks-list li a .more {
+    width: 100%;
+    display: inline-block;
+    text-align: center;
+    padding-top: 10px;
+    max-width: 330px;
+    overflow: hidden;
+}
+
+ul.recent-notebooks-list li a {
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 5px;
+    padding-right: 5px;
+    height: 100%;
+    width: 100%;
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* color-coding of recent notebooks */
+
+.recent-notebooks-group-0 {
+  background-color: #e9fde8;
+}
+
+.recent-notebooks-group-1 {
+  background-color: #f8fde8;
+}
+
+.recent-notebooks-group-2 {
+  background-color: #fdfde8;
+}
+
+.recent-notebooks-group-3 {
+  background-color: #fdf2e8;
+}
+
+.recent-notebooks-group-4 {
+  background-color: #fde8e8;
+}
+
+.recent-notebooks-group-5 {
+  background-color: #f8e8fd;
+}
+
+.recent-notebooks-group-6 {
+  background-color: #f2e8fd;
+}
+
+/* tree filtering and ordering */
+.notebook-tree {
+    padding: 0;
+}
+
+#editor-book-tree {
+    padding: 5px;
+}
+
+#tree-controls {
+    padding: 5px 5px 2px 5px;
+    background: #efefef;
+}
+
+#tree-sort-by, #tree-filter-by {
+    width: 50%;
+    float: left;
+}
+
+#tree-filter-by {
+    text-align: right;
+}
+
+.jqtree-element .jqtree-title.jqtree_common {
+    word-break: break-all;
+    display: inline-block;
+}
+
+#settings-body-wrapper.panel-body {
+    padding-right: 0;
+}
+
+#dataframe .viewer-body-wrapper {
+    word-break: break-all;
+}
+
+#scratchpad-binary {
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    & div {
+        height: 0;
+
+        &.embed {
+            height: 100%;
+        }
+    }
+
+    & embed {
+        width: 100%;
+        height: 100%;
+    }
+}
+
+#scratchpad-binary object {
+    display: block;
+}
+
+body .modal-dialog.full {
+    width: 100%;
+    max-height: 100%;
+}
+
+#message-dialog .modal-content {
+    background-color: #deeff2;
+}
+
+#fatal-dialog .modal-content {
+    background-color: #f2dede;
+}
+
+#shortcut-dialog .modal-dialog {
+    width: 95%;
+    max-width: 1040px;
+
+    .modal-body {
+        padding-bottom: 40px;
+
+        &::-webkit-scrollbar {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 7px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            border-radius: 4px;
+            background-color: rgba(0,0,0,.5);
+            -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
+            box-shadow: 0 0 1px rgba(255,255,255,.5);
+        }
+    }
+
+    .category {
+        width: 450px;
+        float: left;
+        margin-right: 20px;
+
+        kbd, .target, span {
+            display: inline-block;
+            padding: 3px 5px;
+            font: 11px Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            line-height: 10px;
+            color: #555;
+            vertical-align: middle;
+            background-color: #fcfcfc;
+            border: solid 1px #ccc;
+            border-bottom-color: #bbb;
+            border-radius: 3px;
+            box-shadow: inset 0 -1px 0 #bbb;
+        }
+
+        span {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+
+        table {
+            width: 100%;
+
+            td {
+                padding: 3px 0;
+
+                &:first-child {
+                    width: 45%;
+                }
+            }
+        }
+    }
+}
+
+#pull-changes-dialog {
+
+    pointer-events: auto;
+
+    .btn-cancel, .close {
+        display: inline-block;
+    }
+
+    label {
+        width: 150px;
+        margin-top: 10px;
+    }   
+    input {
+        margin-top: 10px;
+    } 
+    input[type="file"] {
+        margin-left: 153px;
+    }
+    div[data-by] {
+        min-height: 70px;
+    }
+    #pull-error {
+        color: red;
+        margin-left: 152px;
+        margin-top: 5px;
+        width: 365px;
+        word-wrap: break-word;
+    }
+    
+    &.pulling {
+        pointer-events: none;
+
+        .btn-cancel, .close {
+            display: none;
+        }
+    }
+}
+
+#merger-dialog {
+
+    .modal-header {
+        padding-left:20px!important;
+        padding-right:20px!important;
+    }
+
+    .modal-body {
+        display: block;
+        .overlay {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+
+            img { 
+                padding-top: 65px;
+                margin: 10px auto;
+                display: block;
+            }
+            p {
+                margin: 10px auto;
+                width: 250px;
+                text-align: center;
+                font-size: 19px;
+            }
+        }
+    }
+
+    &.stage-gettingchanges, &.stage-applyingchanges {
+        .overlay {
+            display: block;
+        }
+        .modal-footer {
+            visibility: hidden;
+        }
+    }
+
+    &.stage-gettingchanges {
+        .getting { display: block; }
+        .applying { display: none; }
+    }
+
+    &.stage-applyingchanges {
+        .getting { display: none; }
+        .applying { display: block; }
+    }
+
+    pointer-events: auto;
+
+    .btn-cancel, .close {
+        display: inline-block;
+    }
+
+    label {
+        width: 150px;
+        margin-top: 10px;
+    }
+
+    input {
+        margin-top: 10px;
+    }
+
+    input[type="file"] {
+        margin-left: 153px;
+    }
+
+    div[data-by] {
+        min-height: 70px;
+    }
+
+    #merge-error {
+        color: red;
+        margin-left: 152px;
+        margin-top: 5px;
+        width: 365px;
+        word-wrap: break-word;
+    }
+
+    #merge-stage, #merge-compare-section {
+        display: none;
+    }
+
+    .btn-init {
+        margin-left: 5px;
+    }
+
+    .btn-merge {
+        display: none;
+    }
+    
+    &.stage-compare {
+        .modal-dialog {
+            width: 98%;
+            height: 97%;
+            margin-top: 1%;
+            padding: 0;
+        }
+
+        .modal-body {
+            max-height: calc(100vh - 212px);
+            min-height: calc(100vh - 212px);
+            padding: 0px;
+            margin: 20px;
+        }
+        
+        .modal-content {
+            min-height: 95%;
+        }
+
+        .show-changes, #merge-init-section {
+            display: none;
+        }
+
+        .btn-merge {
+            display: inline-block;
+        }
+
+        #merge-compare-section {
+            display: block;
+            height: calc(100vh - 212px);
+
+            #compare-file-list {
+                width: 20%;
+            }
+
+            #compare-stage {
+                width: 78%;
+                .diffLoader {
+                  margin-right: 7px;
+                }
+            }
+
+            #compare-file-list, #compare-stage {
+              max-height: 100%;
+              height: 100%;
+            }
+        }
+
+        #compare-file-list {
+            float: left;
+            overflow: auto;
+
+            table {
+                width: 98%;
+            }
+
+            table tr {
+                border-bottom: 1px solid #ccc;
+                @include no-select();
+                
+                cursor: pointer;
+
+                &:hover {
+                    background-color: #f5f5f5;
+                }
+
+                a {
+                   padding: 5px 10px;
+                }
+            }
+
+            td {
+                color: #222;
+                padding: 7px 0;
+            }
+
+            td.type {
+                font-size: 20px;
+                padding-left: 4px;
+                color: #3d3d3d;
+            }
+
+            td.changes {
+                text-align: center;
+                text-transform: uppercase;
+
+                span:not(.total):not(.count)  {
+                    font-weight: normal;
+                    border-radius: 13px;
+                    width: 60px;
+                    display: inline-block;
+                    text-align: center;
+                    border: 1px solid white;
+                }
+                
+                span.add {
+                    background: #dff0d8;
+                    &:hover {
+                        background: darken(#dff0d8, 10%);
+                    }
+                }
+                
+                span.remove {
+                    background: #f2dede;
+                    &:hover {
+                        background: darken(#f2dede, 10%);
+                    }
+                }
+                
+                span.total {
+                    margin-left: 0.3em;
+                    font-size: smaller;
+                    
+                    &:before {
+                       content: '(';
+                    }
+                    &:after {
+                       content: ')';
+                    }
+                }
+                
+                span.count {
+                    font-weight: bold;
+                    font-style: italic;
+                    margin-left: 0.3em;
+                }
+
+                span.modify {
+                    background: #fcf8e3;
+                    &:hover {
+                        background: darken(#fcf8e3, 10%);
+                    }
+                }   
+
+                span.equal {
+                    padding: 5px;
+                    i {
+                        margin-left: 2px;
+                        display: inline-block;
+                        transform: rotate(90deg);
+                    }
+                }
+
+                span {
+                    cursor: help;
+                }
+
+                .icon-indent-left {
+                    font-weight: normal;
+                }
+            }
+
+            .isto span, .isfrom span, .add, .modify, .remove {
+                padding: 5px;
+                display: inline-block;
+            }
+
+            tr.excluded {
+                td.isto, td.changes {
+                    opacity: 0.1;
+                }
+                td.changes {
+                    .add, .modify {
+                        background: #dff0d8;
+
+                        &:hover {
+                            background: darken(#dff0d8, 10%);
+                        }
+                    }
+                    .remove {
+                        background: #ffa3a3;
+                        &:hover {
+                            background: darken(#ffa3a3, 10%);
+                        }
+                    }
+                }
+            }
+        }
+
+        #compare-stage {
+            float: left;
+            padding-left: 10px;
+            overflow: auto;
+
+            .diff-panel {
+                margin-top: 15px;
+                
+                .panel-heading {
+                   font-weight: bolder;
+                   font-style: italic;
+                }
+                .compare-editor {
+                   min-height: 120px;
+                }
+            }
+
+            .diff-no-change, .diff-binary {
+               .panel-body {
+                   font-style: italic;
+                   color: #7f7f7f;
+                   font-weight: bold;
+                   font-size: larger;
+                   text-align: center;
+                }
+             }
+                
+             .excluded {
+                opacity: .3;
+             }
+        }
+
+        .removed {
+            background: #eed3d7;
+        }
+
+        .added {
+            background: #dff0d8;
+        }
+
+        .codelens-decoration {
+            background: black;
+            font-size: 11px!important;
+            padding: 2px 4px;
+
+            a { color: white!important; 
+                &:hover {
+                    color: white!important;
+                }
+            }
+        }
+    }
+
+}
+
+#tree-finder-dialog {
+
+    .modal-dialog {
+        padding: 0;
+        margin-top: -4px;
+    }
+
+    label {
+        span {
+            display: inline-block;
+            width: 150px;
+        }
+    }
+
+    input {
+        width: 385px;
+    }
+
+    .results {
+        max-height: 50vh;
+        overflow-y: auto;
+        > p {
+            font-size: 12px;
+            cursor: pointer; 
+            padding: 5px 2px;
+            margin: 0;
+            &:hover {
+                background: #dedede;
+            }
+            .creator {
+                font-style: italic;
+                color: #555;
+            }
+            .star_count {
+                float: right;
+                i {
+                    margin-left: 3px;
+                }
+            }
+        }
+    }
+}
+
+/* Styles specific to the Copy-To-Clipboard functionality 
+    for the Notebook Info panel. */
+
+    .clipboard-tooltip {
+        position: relative;
+        display: inline-block;
+        cursor: pointer
+    }
+    
+    .clipboard-tooltip .clipboard-tooltip-text {
+        font-family: Helvetica, Arial, sans-serif;
+        visibility: hidden;
+        width: 140px;
+        background-color: #000;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px;
+        position: absolute;
+        z-index: 1;
+        bottom: 150%;
+        left: 50%;
+        margin-left: -75px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .clipboard-tooltip .clipboard-tooltip-text:after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #000 transparent transparent transparent;
+    }
+    
+    .icon-file-text:hover {
+        cursor: pointer;
+    }
+    
+    .clipboard-tooltip:hover .clipboard-tooltip-text {
+        visibility: visible;
+        opacity: 1;
+    }
